@@ -32,7 +32,7 @@ def parse(s):
     ns = []
 
     while True:
-        n, s, i = parse_(s)
+        n, s = parse_(s)
         if not n is None:
             ns.append(n)
 
@@ -42,86 +42,97 @@ def parse(s):
                 ns = ns[:-3]
                 ns.append(n)
             elif is_sub(ns[-2]):
-                # TODO use under over if ns[-3] requires it
-                if ns[-3].tag == 'msup':
+                if ns[-3].tag in ('msup', 'mover'):
                     children = ns[-3].getchildren()
-                    n = El('msubsup', children[0], ns[-1], children[1])
+                    n = El('msubsup' if ns[-3].tag == 'msup' else 'munderover', children[0], ns[-1], children[1])
                 else:
-                    n = El('msub', ns[-3], ns[-1])
+                    n = El('munder' if ns[-3].get('_underover', False) else 'msub', ns[-3], ns[-1])
                 ns = ns[:-3]
                 ns.append(n)
             elif is_sup(ns[-2]):
-                # TODO use under over if ns[-3] requires it
-                if ns[-3].tag == 'msub':
+                if ns[-3].tag in ('msub', 'munder'):
                     children = ns[-3].getchildren()
-                    n = El('msubsup', children[0], children[1], ns[-1])
+                    n = El('msubsup' if ns[-3].tag == 'msub' else 'munderover', children[0], children[1], ns[-1])
                 else:
-                    n = El('msup', ns[-3], ns[-1])
+                    n = El('mover' if ns[-3].get('_underover', False) else 'msup', ns[-3], ns[-1])
                 ns = ns[:-3]
                 ns.append(n)
 
-        if i.type == BINARY:
-            a, s, i = parse_(s)
-            b, s, i = parse_(s)
+        arity = n.get('_arity', 0) if not n is None else None
+
+        if arity == 2:
             n = ns[-1]
-            ns[-1] = El(n.tag, a, b)
-        elif i.type == UNARY:
-            a, s, ai = parse_(s)
+
+            a, s = parse_(s)
+            b, s = parse_(s)
+            n.append(a)
+            n.append(b)
+        elif arity == 1:
             n = ns[-1]
-            if n.text is None:
-                ns[-1] = El(n.tag, a)
-            else:
-                # mo is hardcoded. Good enough?
-                ns[-1] = El(n.tag, El('mo', text=n.text), a)
+
+            a, s = parse_(s)
+            n.append(a)
 
         if s == '':
             # return El('math', El('mstyle', *ns, attrib={"displaystyle": "true"}), attrib={"xmlns": "http://www.w3.org/1998/Math/MathML"})
+            for n in ns:
+                remove_private(n)
             return El('math', El('mstyle', *ns))
+
+def remove_private(n):
+    _ks = [k for k in n.keys() if k.startswith('_')]
+
+    for _k in _ks:
+        del n.attrib[_k]
+
+    for n in n.getchildren():
+        remove_private(n)
+
+def copy(n):
+    m = El(tag=n.tag, attrib=n.attrib, text=n.text)
+
+    for c in n.getchildren():
+        m.append(copy(c))
+
+    return m
 
 def parse_(s):
     s = s.strip()
 
     if s == '':
-        return None, '', SymbolInfo(type=CONST)
+        return None, ''
 
     m = number_re.match(s)
 
     if m:
-        return El('mn', text=m.group(0)), s[m.end():], SymbolInfo(type=CONST)
+        return El('mn', text=m.group(0)), s[m.end():]
 
     for y in symbols:
         if s.startswith(y.input):
-            return El(y.tag, text=y.output), s[len(y.input):], SymbolInfo(type=y.type)
+            return y.el, s[len(y.input):]
 
-    return El('mi', text=s[0]), s[1:], SymbolInfo(type=CONST)
+    return El('mi', text=s[0]), s[1:]
 
-Symbol = namedtuple('Symbol', 'input tag output type')
-# TODO arity=0,1,2
-# TODO subsup=SUBSUP,UNDEROVER
-
-SymbolInfo = namedtuple('SymbolInfo', 'type')
-# TODO private element attribs '_type'
-
-CONST = 1; BINARY = 2; UNARY = 3
+Symbol = namedtuple('Symbol', 'input el')
 
 symbols = [
-    Symbol(input="alpha",  tag="mi", output=u"\u03B1", type=CONST),
-    Symbol(input="beta",  tag="mi", output=u"\u03B2", type=CONST),
-    Symbol(input="gamma",  tag="mi", output=u"\u03B3", type=CONST),
+    Symbol(input="alpha",  el=El("mi", text=u"\u03B1")),
+    Symbol(input="beta",  el=El("mi", text=u"\u03B2")),
+    Symbol(input="gamma",  el=El("mi", text=u"\u03B3")),
 
-    Symbol(input="*",  tag="mo", output="\u22C5", type=CONST),
-    Symbol(input="**", tag="mo", output="\u22C6", type=CONST),
+    Symbol(input="*",  el=El("mo", text=u"\u22C5")),
+    Symbol(input="**", el=El("mo", text=u"\u22C6")),
 
-    Symbol(input="sum", tag="mo", output="\u2211", type=CONST), # type=UNDEROVER),
+    Symbol(input="sum", el=El("mo", text=u"\u2211", attrib={'_underover':True})),
 
-    Symbol(input="sin", tag="mrow", output="sin", type=UNARY), # TODO output=El('mo', text='sin')
-    Symbol(input="dot", tag="mover", output=".", type=UNARY),
-    Symbol(input="sqrt", tag="msqrt", output=None, type=UNARY),
-    Symbol(input="text", tag="mtext", output=None, type=UNARY),
+    Symbol(input="sin", el=El("mrow", El("mo", text="sin"), attrib={'_arity':1})),
+    Symbol(input="dot", el=El("mover", El("mo", text="."), attrib={'_arity':1})),
+    Symbol(input="sqrt", el=El("msqrt", attrib={'_arity':1})),
+    Symbol(input="text", el=El("mtext", attrib={'_arity':1})),
 
-    Symbol(input="frac", tag="mfrac", output=None, type=BINARY),
-    Symbol(input="root", tag="mroot", output=None, type=BINARY),
-    Symbol(input="stackrel", tag="mover", output=None, type=BINARY),
+    Symbol(input="frac", el=El("mfrac", attrib={'_arity':2})),
+    Symbol(input="root", el=El("mroot", attrib={'_arity':2})),
+    Symbol(input="stackrel", el=El("mover", attrib={'_arity':2})),
 ]
 
 if __name__ == '__main__':
