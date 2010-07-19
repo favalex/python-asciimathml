@@ -28,6 +28,21 @@ def is_sub(e):
 def is_sup(e):
     return e.text == '^'
 
+def strip_parens(n):
+    if n.tag == 'mrow':
+        ns = n.getchildren()
+
+        if ns[0].get('_opening', False):
+            n.remove(ns[0])
+
+        if ns[-1].get('_closing', False):
+            n.remove(ns[-1])
+
+    return n
+
+def frac(num, den):
+    return El('mfrac', strip_parens(num), strip_parens(den))
+
 def parse(s):
     ns = []
 
@@ -36,27 +51,31 @@ def parse(s):
         if not n is None:
             ns.append(n)
 
+            if ns[-1].get('_closing', False):
+                i = len(ns) - 2
+                while i > 0:
+                    if ns[i].get('_opening', False):
+                        break
+                    i -= 1
+                ns[i:] = [El('mrow', *ns[i:])]
+
         if len(ns) > 2:
             if is_frac(ns[-2]):
-                n = El('mfrac', ns[-3], ns[-1])
-                ns = ns[:-3]
-                ns.append(n)
+                ns[-3:] = [frac(ns[-3], ns[-1])]
             elif is_sub(ns[-2]):
                 if ns[-3].tag in ('msup', 'mover'):
                     children = ns[-3].getchildren()
                     n = El('msubsup' if ns[-3].tag == 'msup' else 'munderover', children[0], ns[-1], children[1])
                 else:
                     n = El('munder' if ns[-3].get('_underover', False) else 'msub', ns[-3], ns[-1])
-                ns = ns[:-3]
-                ns.append(n)
+                ns[-3:] = [n]
             elif is_sup(ns[-2]):
                 if ns[-3].tag in ('msub', 'munder'):
                     children = ns[-3].getchildren()
                     n = El('msubsup' if ns[-3].tag == 'msub' else 'munderover', children[0], children[1], ns[-1])
                 else:
                     n = El('mover' if ns[-3].get('_underover', False) else 'msup', ns[-3], ns[-1])
-                ns = ns[:-3]
-                ns.append(n)
+                ns[-3:] = [n]
 
         arity = n.get('_arity', 0) if not n is None else None
 
@@ -111,7 +130,7 @@ def parse_(s):
         if s.startswith(y.input):
             return y.el, s[len(y.input):]
 
-    return El('mi', text=s[0]), s[1:]
+    return El('mi' if s[0].isalpha() else 'mo', text=s[0]), s[1:]
 
 Symbol = namedtuple('Symbol', 'input el')
 
@@ -122,6 +141,9 @@ symbols = [
 
     Symbol(input="*",  el=El("mo", text=u"\u22C5")),
     Symbol(input="**", el=El("mo", text=u"\u22C6")),
+
+    Symbol(input="(",  el=El("mo", text="(", attrib={'_opening': True})),
+    Symbol(input=")",  el=El("mo", text=")", attrib={'_closing': True})),
 
     Symbol(input="sum", el=El("mo", text=u"\u2211", attrib={'_underover':True})),
 

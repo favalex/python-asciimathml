@@ -8,6 +8,10 @@ class ParseTestCase(unittest.TestCase):
     def assertTreeEquals(self, a, b):
         self.assertEquals(tostring(a), tostring(b))
 
+    def assertRendersTo(self, asciimathml, xmlstring):
+        mathml = parse(asciimathml)
+        self.assertEquals(tostring(mathml), '<math><mstyle>%s</mstyle></math>' % xmlstring)
+
     def testEmpty(self):
         self.assertTreeEquals(parse(''), El('math', El('mstyle')))
 
@@ -97,6 +101,20 @@ class ParseTestCase(unittest.TestCase):
                     El('mo', text=u'\u2211'),
                     El('mi', text=u'\u03b1'),
                     El('mi', text=u'\u03b2')))))
+
+    def testParens(self):
+        self.assertTreeEquals(parse('(alpha + beta) / gamma'),
+            El('math', El('mstyle',
+                El('mfrac',
+                    El('mrow',
+                        El('mi', text=u'\u03b1'),
+                        El('mo', text='+'),
+                        El('mi', text=u'\u03b2')),
+                    El('mi', text=u'\u03b3')))))
+
+    def testUnbalancedParens(self):
+        self.assertRendersTo('(alpha + beta / gamma',
+            '<mrow><mo>(</mo><mi>&#945;</mi><mo>+</mo><mfrac><mi>&#946;</mi><mi>&#947;</mi></mfrac></mrow>')
 
 if __name__ == '__main__':
     unittest.main()
