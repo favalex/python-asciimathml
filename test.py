@@ -6,7 +6,7 @@ from asciimathml import *
 
 class ParseTestCase(unittest.TestCase):
     def assertTreeEquals(self, a, b):
-        self.assertEquals(tostring(a), tostring(b))
+        self.assertEquals(tostring(a), tostring(remove_private(b)))
 
     def assertRendersTo(self, asciimathml, xmlstring):
         mathml = parse(asciimathml)

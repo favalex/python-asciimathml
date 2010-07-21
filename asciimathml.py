@@ -5,7 +5,7 @@ import pdb
 
 from xml.etree.ElementTree import Element, SubElement, tostring
 
-__all__ = ['parse', 'El']
+__all__ = ['parse', 'El', 'remove_private']
 
 def El(tag, *args, **kwargs):
     text = kwargs.pop('text', '')
@@ -13,6 +13,7 @@ def El(tag, *args, **kwargs):
     element.text = text
 
     for child in args:
+        child.set('_parent', element)
         element.append(child)
 
     return element
@@ -44,68 +45,78 @@ def frac(num, den):
     return El('mfrac', strip_parens(num), strip_parens(den))
 
 def parse(s):
-    ns = []
+    root = El('math', El('mstyle'))
 
+    parse__(s, root[0])
+
+    remove_private(root)
+    return root
+
+def parse__(s, ns):
     while True:
-        n, s = parse_(s)
-        if not n is None:
-            ns.append(n)
+        s = parse_(s, ns.append)
+
+        if len(ns) > 0:
+            n = ns[-1]
 
             if ns[-1].get('_closing', False):
-                i = len(ns) - 2
-                while i > 0:
-                    if ns[i].get('_opening', False):
-                        break
-                    i -= 1
-                ns[i:] = [El('mrow', *ns[i:])]
+                ns = ns['_parent']
 
-        if len(ns) > 2:
-            if is_frac(ns[-2]):
-                ns[-3:] = [frac(ns[-3], ns[-1])]
-            elif is_sub(ns[-2]):
-                if ns[-3].tag in ('msup', 'mover'):
-                    children = ns[-3].getchildren()
-                    n = El('msubsup' if ns[-3].tag == 'msup' else 'munderover', children[0], ns[-1], children[1])
-                else:
-                    n = El('munder' if ns[-3].get('_underover', False) else 'msub', ns[-3], ns[-1])
-                ns[-3:] = [n]
-            elif is_sup(ns[-2]):
-                if ns[-3].tag in ('msub', 'munder'):
-                    children = ns[-3].getchildren()
-                    n = El('msubsup' if ns[-3].tag == 'msub' else 'munderover', children[0], children[1], ns[-1])
-                else:
-                    n = El('mover' if ns[-3].get('_underover', False) else 'msup', ns[-3], ns[-1])
-                ns[-3:] = [n]
+            if ns[-1].get('_opening', False):
+                el = ns[-1]
+                del ns[-1]
+                ns = El('mrow', el, attrib={'_parent': ns})
 
-        arity = n.get('_arity', 0) if not n is None else None
+            if len(ns) > 2:
+                if is_frac(ns[-2]):
+                    ns[-3:] = [frac(ns[-3], ns[-1])]
+                elif is_sub(ns[-2]):
+                    if ns[-3].tag in ('msup', 'mover'):
+                        children = ns[-3].getchildren()
+                        n = El('msubsup' if ns[-3].tag == 'msup' else 'munderover', children[0], ns[-1], children[1])
+                    else:
+                        n = El('munder' if ns[-3].get('_underover', False) else 'msub', ns[-3], ns[-1])
+                    ns[-3:] = [n]
+                elif is_sup(ns[-2]):
+                    if ns[-3].tag in ('msub', 'munder'):
+                        children = ns[-3].getchildren()
+                        n = El('msubsup' if ns[-3].tag == 'msub' else 'munderover', children[0], children[1], ns[-1])
+                    else:
+                        n = El('mover' if ns[-3].get('_underover', False) else 'msup', ns[-3], ns[-1])
+                    ns[-3:] = [n]
 
-        if arity == 2:
-            n = ns[-1]
+            arity = n.get('_arity', 0) if not n is None else None
 
-            a, s = parse_(s)
-            b, s = parse_(s)
-            n.append(a)
-            n.append(b)
-        elif arity == 1:
-            n = ns[-1]
+            if arity == 2:
+                n = ns[-1]
 
-            a, s = parse_(s)
-            n.append(a)
+                s = parse_(s, n.append, True)
+                s = parse_(s, n.append, True)
+            elif arity == 1:
+                n = ns[-1]
+
+                s = parse_(s, n.append, True)
 
         if s == '':
             # return El('math', El('mstyle', *ns, attrib={"displaystyle": "true"}), attrib={"xmlns": "http://www.w3.org/1998/Math/MathML"})
             for n in ns:
                 remove_private(n)
-            return El('math', El('mstyle', *ns))
+
+            return
 
 def remove_private(n):
+    # FIXME maybe it's better to store private attributes in another place
+    # (e.g. n._mathml_XXX)
+
     _ks = [k for k in n.keys() if k.startswith('_')]
 
     for _k in _ks:
         del n.attrib[_k]
 
-    for n in n.getchildren():
-        remove_private(n)
+    for c in n.getchildren():
+        remove_private(c)
+
+    return n
 
 def copy(n):
     m = El(tag=n.tag, attrib=n.attrib, text=n.text)
@@ -115,22 +126,27 @@ def copy(n):
 
     return m
 
-def parse_(s):
+def parse_(s, append, required=False):
     s = s.strip()
 
     if s == '':
-        return None, ''
+        if required:
+            append(El('mi', text='bla'))
+        return ''
 
     m = number_re.match(s)
 
     if m:
-        return El('mn', text=m.group(0)), s[m.end():]
+        append(El('mn', text=m.group(0)))
+        return s[m.end():]
 
     for y in symbols:
         if s.startswith(y.input):
-            return y.el, s[len(y.input):]
+            append(y.el)
+            return s[len(y.input):]
 
-    return El('mi' if s[0].isalpha() else 'mo', text=s[0]), s[1:]
+    append(El('mi' if s[0].isalpha() else 'mo', text=s[0]))
+    return s[1:]
 
 Symbol = namedtuple('Symbol', 'input el')
 
