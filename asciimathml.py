@@ -59,13 +59,12 @@ def parse__(s, ns):
         if len(ns) > 0:
             n = ns[-1]
 
-            if ns[-1].get('_closing', False):
-                ns = ns['_parent']
+            if n.get('_closing', False):
+                ns = ns.get('_parent')
 
-            if ns[-1].get('_opening', False):
-                el = ns[-1]
-                del ns[-1]
-                ns = El('mrow', el, attrib={'_parent': ns})
+            if n.get('_opening', False):
+                ns[-1] = El('mrow', n, attrib={'_parent': ns})
+                ns = ns[-1]
 
             if len(ns) > 2:
                 if is_frac(ns[-2]):
