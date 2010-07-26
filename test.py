@@ -116,6 +116,10 @@ class ParseTestCase(unittest.TestCase):
         self.assertRendersTo('(alpha + beta / gamma',
             '<mrow><mo>(</mo><mi>&#945;</mi><mo>+</mo><mfrac><mi>&#946;</mi><mi>&#947;</mi></mfrac></mrow>')
 
+    def testNestedParens(self):
+        self.assertRendersTo('(alpha + [ beta + { gamma } ] )',
+            '<mrow><mo>(</mo><mi>&#945;</mi><mo>+</mo><mrow><mo>[</mo><mi>&#946;</mi><mo>+</mo><mrow><mo>{</mo><mi>&#947;</mi><mo>}</mo></mrow><mo>]</mo></mrow><mo>)</mo></mrow>')
+
 if __name__ == '__main__':
     unittest.main()
 

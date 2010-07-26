@@ -31,13 +31,11 @@ def is_sup(e):
 
 def strip_parens(n):
     if n.tag == 'mrow':
-        ns = n.getchildren()
+        if n[0].get('_opening', False):
+           del n[0]
 
-        if ns[0].get('_opening', False):
-            n.remove(ns[0])
-
-        if ns[-1].get('_closing', False):
-            n.remove(ns[-1])
+        if n[-1].get('_closing', False):
+            del n[-1]
 
     return n
 
@@ -141,7 +139,7 @@ def parse_(s, append, required=False):
 
     for y in symbols:
         if s.startswith(y.input):
-            append(y.el)
+            append(copy(y.el))
             return s[len(y.input):]
 
     append(El('mi' if s[0].isalpha() else 'mo', text=s[0]))
@@ -159,6 +157,12 @@ symbols = [
 
     Symbol(input="(",  el=El("mo", text="(", attrib={'_opening': True})),
     Symbol(input=")",  el=El("mo", text=")", attrib={'_closing': True})),
+
+    Symbol(input="[",  el=El("mo", text="[", attrib={'_opening': True})),
+    Symbol(input="]",  el=El("mo", text="]", attrib={'_closing': True})),
+
+    Symbol(input="{",  el=El("mo", text="{", attrib={'_opening': True})),
+    Symbol(input="}",  el=El("mo", text="}", attrib={'_closing': True})),
 
     Symbol(input="sum", el=El("mo", text=u"\u2211", attrib={'_underover':True})),
 
