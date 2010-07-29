@@ -3,13 +3,15 @@ from collections import namedtuple
 
 import pdb
 
-from xml.etree.ElementTree import Element, SubElement, tostring
+from xml.etree.ElementTree import Element, tostring
 
 __all__ = ['parse', 'El', 'remove_private']
 
+Element_ = Element
+
 def El(tag, *args, **kwargs):
     text = kwargs.pop('text', '')
-    element = Element(tag, attrib=kwargs.get('attrib', {}))
+    element = Element_(tag, attrib=kwargs.get('attrib', {}))
     element.text = text
 
     for child in args:
@@ -42,7 +44,10 @@ def strip_parens(n):
 def frac(num, den):
     return El('mfrac', strip_parens(num), strip_parens(den))
 
-def parse(s):
+def parse(s, element=Element):
+    global Element_
+
+    Element_ = element
     root = El('math', El('mstyle'))
 
     parse__(s, root[0])
@@ -105,7 +110,7 @@ def remove_private(n):
     # FIXME maybe it's better to store private attributes in another place
     # (e.g. n._mathml_XXX)
 
-    _ks = [k for k in n.keys() if k.startswith('_')]
+    _ks = [k for k in n.keys() if k.startswith('_') or k == 'attrib']
 
     for _k in _ks:
         del n.attrib[_k]
