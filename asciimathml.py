@@ -382,7 +382,7 @@ if __name__ == '__main__':
     </head>
     <body>
 """
-    print tostring(parse(' '.join(args)))
+    print tostring(parse(' '.join(args), element))
     print """\
     </body>
 </html>
