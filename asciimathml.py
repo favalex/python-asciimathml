@@ -110,9 +110,6 @@ def parse__(s, ns):
             return
 
 def remove_private(n):
-    # FIXME maybe it's better to store private attributes in another place
-    # (e.g. n._mathml_XXX)
-
     _ks = [k for k in n.keys() if k.startswith('_') or k == 'attrib']
 
     for _k in _ks:
