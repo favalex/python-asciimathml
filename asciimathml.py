@@ -199,6 +199,10 @@ if __name__ == '__main__':
         import markdown
         args.pop(0)
         element = markdown.etree.Element
+    elif args[0] == '-c':
+        from xml.etree.cElementTree import Element
+        args.pop(0)
+        element = Element
     else:
         element = Element
 
