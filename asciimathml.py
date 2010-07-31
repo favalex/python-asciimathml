@@ -22,7 +22,7 @@ def El(tag, *args, **kwargs):
 
     return element
 
-number_re = re.compile('\d+(\.\d+)?')
+number_re = re.compile('(\d+\.(\d+)?|\.?\d+)')
 
 def is_frac(e):
     return e.text == '/'
