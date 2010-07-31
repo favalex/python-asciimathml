@@ -11,7 +11,7 @@ Element_ = Element
 
 def El(tag, *args, **kwargs):
     text = kwargs.pop('text', '')
-    element = Element_(tag, attrib=kwargs.get('attrib', {}))
+    element = Element_(tag, **kwargs.get('attrib', {}))
     element.text = text
 
     for child in args:
@@ -121,7 +121,7 @@ def remove_private(n):
     return n
 
 def copy(n):
-    m = El(tag=n.tag, attrib=n.attrib, text=n.text)
+    m = El(tag=n.tag, text=n.text, attrib=dict(n.items()))
 
     for c in n.getchildren():
         m.append(copy(c))
