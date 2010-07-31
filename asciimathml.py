@@ -23,7 +23,6 @@ def El(tag, text=None, *children, **attrib):
         element.text = AtomicString_(text)
 
     for child in children:
-        child.set('_parent', element)
         element.append(child)
 
     return element
@@ -48,6 +47,15 @@ def strip_parens(n):
             del n[-1]
 
     return n
+
+def binary(operator, operand_1, operand_2):
+    operator.append(operand_1)
+    operator.append(operand_2)
+    return operator
+
+def unary(operator, operand):
+    operator.append(operand)
+    return operator
 
 def frac(num, den):
     return El('mfrac', strip_parens(num), strip_parens(den))
@@ -79,51 +87,45 @@ def parse(s, element=Element, atomicstring=lambda s: s):
 
     Element_ = element
     AtomicString_ = atomicstring
-    root = El('math', El('mstyle'))
 
-    parse__(s, root[0])
+    s, nodes = parse_exprs(s)
+    nodes = map(remove_private, nodes)
 
-    remove_private(root)
-    return root
+    return El('math', El('mstyle', *nodes))
 
-def parse__(s, ns):
+def parse_exprs(s, nodes=None):
+    if nodes is None:
+        nodes = []
+
     while True:
         s, n = parse_m(s)
 
         if not n is None:
-            ns.append(n)
+            nodes.append(n)
 
             if n.get('_closing', False):
-                ns = ns.get('_parent')
+                return s, nodes
 
             if n.get('_opening', False):
-                ns[-1] = El('mrow', n, _parent=ns)
-                ns = ns[-1]
+                s, children = parse_exprs(s, [n])
+                nodes[-1] = El('mrow', *children)
 
-            if len(ns) > 2:
-                if is_frac(ns[-2]):
-                    ns[-3:] = [frac(ns[-3], ns[-1])]
-                elif is_sub(ns[-2]):
-                    ns[-3:] = [sub(ns[-3], ns[-1])]
-                elif is_sup(ns[-2]):
-                    ns[-3:] = [sup(ns[-3], ns[-1])]
+            if len(nodes) >= 2:
+                if nodes[-2].get('_arity', 0) == 1:
+                    nodes[-2:] = [unary(*nodes[-2:])]
 
-            arity = n.get('_arity', 0) if not n is None else None
+            if len(nodes) >= 3:
+                if nodes[-3].get('_arity', 0) == 2:
+                    nodes[-3:] = [binary(*nodes[-3:])]
 
-            if arity == 2:
-                s, m1 = parse_m(s, True)
-                n.append(m1)
-                s, m2 = parse_m(s, True)
-                n.append(m2)
-            elif arity == 1:
-                s, m = parse_m(s, True)
-                n.append(m)
+            if len(nodes) >= 3:
+                for op, fn in (('/', frac), ('_', sub), ('^', sup)):
+                    if nodes[-2].text == op:
+                        nodes[-3:] = [fn(nodes[-3], nodes[-1])]
+                        break # XXX
 
         if s == '':
-            for n in ns:
-                remove_private(n)
-
-            return
+            return '', nodes
 
 def remove_private(n):
     _ks = [k for k in n.keys() if k.startswith('_') or k == 'attrib']
