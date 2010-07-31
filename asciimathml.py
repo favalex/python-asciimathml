@@ -10,13 +10,18 @@ __all__ = ['parse', 'El', 'remove_private']
 Element_ = Element
 AtomicString_ = lambda s: s
 
-# FIXME El(tag, text, child0, child1, attrib0=v0, attrib1=v1)
-def El(tag, *args, **kwargs):
-    text = kwargs.pop('text', '')
-    element = Element_(tag, **kwargs.get('attrib', {}))
-    element.text = AtomicString_(text)
+def El(tag, text=None, *children, **attrib):
+    # FIXME Element is a function, not a class, thus the stupid hack
+    if isinstance(text, Element_('dummy').__class__):
+        children = (text, ) + children
+        text = None
 
-    for child in args:
+    element = Element_(tag, **attrib)
+
+    if text:
+        element.text = AtomicString_(text)
+
+    for child in children:
         child.set('_parent', element)
         element.append(child)
 
@@ -69,7 +74,7 @@ def parse__(s, ns):
                 ns = ns.get('_parent')
 
             if n.get('_opening', False):
-                ns[-1] = El('mrow', n, attrib={'_parent': ns})
+                ns[-1] = El('mrow', n, _parent=ns)
                 ns = ns[-1]
 
             if len(ns) > 2:
@@ -121,7 +126,7 @@ def remove_private(n):
     return n
 
 def copy(n):
-    m = El(tag=n.tag, text=n.text, attrib=dict(n.items()))
+    m = El(n.tag, n.text, **dict(n.items()))
 
     for c in n.getchildren():
         m.append(copy(c))
@@ -133,13 +138,13 @@ def parse_(s, append, required=False):
 
     if s == '':
         if required:
-            append(El('mi', text='bla'))
+            append(El('mi', 'bla'))
         return ''
 
     m = number_re.match(s)
 
     if m:
-        append(El('mn', text=m.group(0)))
+        append(El('mn', m.group(0)))
         return s[m.end():]
 
     for y in symbols:
@@ -147,38 +152,38 @@ def parse_(s, append, required=False):
             append(copy(y.el))
             return s[len(y.input):]
 
-    append(El('mi' if s[0].isalpha() else 'mo', text=s[0]))
+    append(El('mi' if s[0].isalpha() else 'mo', s[0]))
     return s[1:]
 
 Symbol = namedtuple('Symbol', 'input el')
 
 symbols = [
-    Symbol(input="alpha",  el=El("mi", text=u"\u03B1")),
-    Symbol(input="beta",  el=El("mi", text=u"\u03B2")),
-    Symbol(input="gamma",  el=El("mi", text=u"\u03B3")),
+    Symbol(input="alpha",  el=El("mi", u"\u03B1")),
+    Symbol(input="beta",  el=El("mi", u"\u03B2")),
+    Symbol(input="gamma",  el=El("mi", u"\u03B3")),
 
-    Symbol(input="*",  el=El("mo", text=u"\u22C5")),
-    Symbol(input="**", el=El("mo", text=u"\u22C6")),
+    Symbol(input="*",  el=El("mo", u"\u22C5")),
+    Symbol(input="**", el=El("mo", u"\u22C6")),
 
-    Symbol(input="(",  el=El("mo", text="(", attrib={'_opening': True})),
-    Symbol(input=")",  el=El("mo", text=")", attrib={'_closing': True})),
+    Symbol(input="(",  el=El("mo", "(", _opening=True)),
+    Symbol(input=")",  el=El("mo", ")", _closing=True)),
 
-    Symbol(input="[",  el=El("mo", text="[", attrib={'_opening': True})),
-    Symbol(input="]",  el=El("mo", text="]", attrib={'_closing': True})),
+    Symbol(input="[",  el=El("mo", "[", _opening=True)),
+    Symbol(input="]",  el=El("mo", "]", _closing=True)),
 
-    Symbol(input="{",  el=El("mo", text="{", attrib={'_opening': True})),
-    Symbol(input="}",  el=El("mo", text="}", attrib={'_closing': True})),
+    Symbol(input="{",  el=El("mo", "{", _opening=True)),
+    Symbol(input="}",  el=El("mo", "}", _closing=True)),
 
-    Symbol(input="sum", el=El("mo", text=u"\u2211", attrib={'_underover':True})),
+    Symbol(input="sum", el=El("mo", u"\u2211", _underover=True)),
 
-    Symbol(input="sin", el=El("mrow", El("mo", text="sin"), attrib={'_arity':1})),
-    Symbol(input="dot", el=El("mover", El("mo", text="."), attrib={'_arity':1})),
-    Symbol(input="sqrt", el=El("msqrt", attrib={'_arity':1})),
-    Symbol(input="text", el=El("mtext", attrib={'_arity':1})),
+    Symbol(input="sin", el=El("mrow", El("mo", "sin"), _arity=1)),
+    Symbol(input="dot", el=El("mover", El("mo", "."), _arity=1)),
+    Symbol(input="sqrt", el=El("msqrt", _arity=1)),
+    Symbol(input="text", el=El("mtext", _arity=1)),
 
-    Symbol(input="frac", el=El("mfrac", attrib={'_arity':2})),
-    Symbol(input="root", el=El("mroot", attrib={'_arity':2})),
-    Symbol(input="stackrel", el=El("mover", attrib={'_arity':2})),
+    Symbol(input="frac", el=El("mfrac", _arity=2)),
+    Symbol(input="root", el=El("mroot", _arity=2)),
+    Symbol(input="stackrel", el=El("mover", _arity=2)),
 ]
 
 if __name__ == '__main__':
