@@ -33,7 +33,9 @@ class ASCIIMathMLPattern (markdown.inlinepatterns.Pattern) :
         # a.appendChild(doc.createTextNode(str(num)))
         # return sup
         # return doc.createTextNode(id)
-        return asciimathml.parse(id, markdown.etree.Element, markdown.AtomicString)
+        math = asciimathml.parse(id, markdown.etree.Element, markdown.AtomicString)
+        math.set('xmlns', 'http://www.w3.org/1998/Math/MathML')
+        return math
 
 def makeExtension(configs=None) :
     return ASCIIMathMLExtension(configs=configs)
