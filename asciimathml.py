@@ -8,11 +8,13 @@ from xml.etree.ElementTree import Element, tostring
 __all__ = ['parse', 'El', 'remove_private']
 
 Element_ = Element
+AtomicString_ = lambda s: s
 
+# FIXME El(tag, text, child0, child1, attrib0=v0, attrib1=v1)
 def El(tag, *args, **kwargs):
     text = kwargs.pop('text', '')
     element = Element_(tag, **kwargs.get('attrib', {}))
-    element.text = text
+    element.text = AtomicString_(text)
 
     for child in args:
         child.set('_parent', element)
@@ -44,10 +46,11 @@ def strip_parens(n):
 def frac(num, den):
     return El('mfrac', strip_parens(num), strip_parens(den))
 
-def parse(s, element=Element):
-    global Element_
+def parse(s, element=Element, atomicstring=lambda s: s):
+    global Element_, AtomicString_
 
     Element_ = element
+    AtomicString_ = atomicstring
     root = El('math', El('mstyle'))
 
     parse__(s, root[0])
