@@ -11,14 +11,11 @@ Element_ = Element
 
 def El(tag, *args, **kwargs):
     text = kwargs.pop('text', '')
-    element = Element_(tag)
+    element = Element_(tag, attrib=kwargs.get('attrib', {}))
     element.text = text
 
-    for k, v in kwargs.get('attrib', {}).items():
-        setattr(element, k, v)
-
     for child in args:
-        setattr(child, '_parent', element)
+        child.set('_parent', element)
         element.append(child)
 
     return element
@@ -36,10 +33,10 @@ def is_sup(e):
 
 def strip_parens(n):
     if n.tag == 'mrow':
-        if getattr(n[0], '_opening', False):
+        if n[0].get('_opening', False):
            del n[0]
 
-        if getattr(n[-1], '_closing', False):
+        if n[-1].get('_closing', False):
             del n[-1]
 
     return n
@@ -65,10 +62,10 @@ def parse__(s, ns):
         if len(ns) > 0:
             n = ns[-1]
 
-            if getattr(n, '_closing', False):
-                ns = getattr(ns, '_parent')
+            if n.get('_closing', False):
+                ns = ns.get('_parent')
 
-            if getattr(n, '_opening', False):
+            if n.get('_opening', False):
                 ns[-1] = El('mrow', n, attrib={'_parent': ns})
                 ns = ns[-1]
 
@@ -80,17 +77,17 @@ def parse__(s, ns):
                         children = ns[-3].getchildren()
                         n = El('msubsup' if ns[-3].tag == 'msup' else 'munderover', children[0], ns[-1], children[1])
                     else:
-                        n = El('munder' if getattr(ns[-3], '_underover', False) else 'msub', ns[-3], ns[-1])
+                        n = El('munder' if ns[-3].get('_underover', False) else 'msub', ns[-3], ns[-1])
                     ns[-3:] = [n]
                 elif is_sup(ns[-2]):
                     if ns[-3].tag in ('msub', 'munder'):
                         children = ns[-3].getchildren()
                         n = El('msubsup' if ns[-3].tag == 'msub' else 'munderover', children[0], children[1], ns[-1])
                     else:
-                        n = El('mover' if getattr(ns[-3], '_underover', False) else 'msup', ns[-3], ns[-1])
+                        n = El('mover' if ns[-3].get('_underover', False) else 'msup', ns[-3], ns[-1])
                     ns[-3:] = [n]
 
-            arity = getattr(n, '_arity', 0) if not n is None else None
+            arity = n.get('_arity', 0) if not n is None else None
 
             if arity == 2:
                 n = ns[-1]
@@ -124,15 +121,7 @@ def remove_private(n):
     return n
 
 def copy(n):
-    m = El(tag=n.tag, text=n.text)
-
-    for k in ('_arity', '_parent', '_opening', '_closing', '_underover'):
-        try:
-            v = getattr(n, k)
-        except:
-            pass
-        else:
-            setattr(m, k, v)
+    m = El(tag=n.tag, attrib=n.attrib, text=n.text)
 
     for c in n.getchildren():
         m.append(copy(c))
@@ -215,7 +204,7 @@ if __name__ == '__main__':
     </head>
     <body>
 """
-    print tostring(parse(' '.join(args), element))
+    print tostring(parse(' '.join(args)))
     print """\
     </body>
 </html>
