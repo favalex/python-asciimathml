@@ -88,10 +88,10 @@ def parse(s, element=Element, atomicstring=lambda s: s):
 
 def parse__(s, ns):
     while True:
-        s = parse_(s, ns.append)
+        s, n = parse_m(s)
 
-        if len(ns) > 0:
-            n = ns[-1]
+        if not n is None:
+            ns.append(n)
 
             if n.get('_closing', False):
                 ns = ns.get('_parent')
@@ -111,17 +111,15 @@ def parse__(s, ns):
             arity = n.get('_arity', 0) if not n is None else None
 
             if arity == 2:
-                n = ns[-1]
-
-                s = parse_(s, n.append, True)
-                s = parse_(s, n.append, True)
+                s, m1 = parse_m(s, True)
+                n.append(m1)
+                s, m2 = parse_m(s, True)
+                n.append(m2)
             elif arity == 1:
-                n = ns[-1]
-
-                s = parse_(s, n.append, True)
+                s, m = parse_m(s, True)
+                n.append(m)
 
         if s == '':
-            # return El('math', El('mstyle', *ns, attrib={"displaystyle": "true"}), attrib={"xmlns": "http://www.w3.org/1998/Math/MathML"})
             for n in ns:
                 remove_private(n)
 
@@ -146,27 +144,22 @@ def copy(n):
 
     return m
 
-def parse_(s, append, required=False):
+def parse_m(s, required=False):
     s = s.strip()
 
     if s == '':
-        if required:
-            append(El('mi', 'bla'))
-        return ''
+        return '', El('mi', u'\u25a1') if required else None
 
     m = number_re.match(s)
 
     if m:
-        append(El('mn', m.group(0)))
-        return s[m.end():]
+        return s[m.end():], El('mn', m.group(0))
 
     for y in symbol_names:
         if s.startswith(y):
-            append(copy(symbols[y]))
-            return s[len(y):]
+            return s[len(y):], copy(symbols[y])
 
-    append(El('mi' if s[0].isalpha() else 'mo', s[0]))
-    return s[1:]
+    return s[1:], El('mi' if s[0].isalpha() else 'mo', s[0])
 
 symbols = {}
 
