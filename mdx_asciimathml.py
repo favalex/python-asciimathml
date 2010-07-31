@@ -13,7 +13,7 @@ class ASCIIMathMLExtension (markdown.Extension):
 
         RE = re.compile(r'^(.*)\$\$([^\$]*)\$\$(.*)$', re.M) # $$ a $$
 
-        md.inlinePatterns.add('', ASCIIMathMLPattern(RE), '>emphasis2')
+        md.inlinePatterns.add('', ASCIIMathMLPattern(RE), '_begin')
 
     def reset(self) :
         pass
