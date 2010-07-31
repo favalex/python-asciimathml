@@ -52,6 +52,28 @@ def strip_parens(n):
 def frac(num, den):
     return El('mfrac', strip_parens(num), strip_parens(den))
 
+def sub(base, subscript):
+    subscript = strip_parens(subscript)
+
+    if base.tag in ('msup', 'mover'):
+        children = base.getchildren()
+        n = El('msubsup' if base.tag == 'msup' else 'munderover', children[0], subscript, children[1])
+    else:
+        n = El('munder' if base.get('_underover', False) else 'msub', base, subscript)
+
+    return n
+
+def sup(base, superscript):
+    superscript = strip_parens(superscript)
+
+    if base.tag in ('msub', 'munder'):
+        children = base.getchildren()
+        n = El('msubsup' if base.tag == 'msub' else 'munderover', children[0], children[1], superscript)
+    else:
+        n = El('mover' if base.get('_underover', False) else 'msup', base, superscript)
+
+    return n
+
 def parse(s, element=Element, atomicstring=lambda s: s):
     global Element_, AtomicString_
 
@@ -82,19 +104,9 @@ def parse__(s, ns):
                 if is_frac(ns[-2]):
                     ns[-3:] = [frac(ns[-3], ns[-1])]
                 elif is_sub(ns[-2]):
-                    if ns[-3].tag in ('msup', 'mover'):
-                        children = ns[-3].getchildren()
-                        n = El('msubsup' if ns[-3].tag == 'msup' else 'munderover', children[0], ns[-1], children[1])
-                    else:
-                        n = El('munder' if ns[-3].get('_underover', False) else 'msub', ns[-3], ns[-1])
-                    ns[-3:] = [n]
+                    ns[-3:] = [sub(ns[-3], ns[-1])]
                 elif is_sup(ns[-2]):
-                    if ns[-3].tag in ('msub', 'munder'):
-                        children = ns[-3].getchildren()
-                        n = El('msubsup' if ns[-3].tag == 'msub' else 'munderover', children[0], children[1], ns[-1])
-                    else:
-                        n = El('mover' if ns[-3].get('_underover', False) else 'msup', ns[-3], ns[-1])
-                    ns[-3:] = [n]
+                    ns[-3:] = [sup(ns[-3], ns[-1])]
 
             arity = n.get('_arity', 0) if not n is None else None
 
