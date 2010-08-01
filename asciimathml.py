@@ -27,7 +27,7 @@ def El(tag, text=None, *children, **attrib):
 
     return element
 
-number_re = re.compile('(\d+\.(\d+)?|\.?\d+)')
+number_re = re.compile('-?(\d+\.(\d+)?|\.?\d+)')
 
 def is_frac(e):
     return e.text == '/'
@@ -173,7 +173,11 @@ def parse_m(s, required=False):
     m = number_re.match(s)
 
     if m:
-        return s[m.end():], El('mn', m.group(0))
+        number = m.group(0)
+        if number[0] == '-':
+            return s[m.end():], El('mrow', El('mo', '-'), El('mn', number[1:]))
+        else:
+            return s[m.end():], El('mn', number)
 
     for y in symbol_names:
         if s.startswith(y):
