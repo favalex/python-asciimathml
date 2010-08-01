@@ -48,13 +48,25 @@ def strip_parens(n):
 
     return n
 
-def binary(operator, operand_1, operand_2):
-    operator.append(operand_1)
-    operator.append(operand_2)
+def binary(operator, operand_1, operand_2, swap=False):
+    operand_1 = strip_parens(operand_1)
+    operand_2 = strip_parens(operand_2)
+    if not swap:
+        operator.append(operand_1)
+        operator.append(operand_2)
+    else:
+        operator.append(operand_2)
+        operator.append(operand_1)
+
     return operator
 
-def unary(operator, operand):
-    operator.append(operand)
+def unary(operator, operand, swap=False):
+    operand = strip_parens(operand)
+    if swap:
+        operator.insert(0, operand)
+    else:
+        operator.append(operand)
+
     return operator
 
 def frac(num, den):
@@ -93,30 +105,36 @@ def parse(s, element=Element, atomicstring=lambda s: s):
 
     return El('math', El('mstyle', *nodes))
 
+def parse_expr(s):
+    s, n = parse_m(s)
+
+    if not n is None:
+        if n.get('_opening', False):
+            s, children = parse_exprs(s, [n])
+            n = El('mrow', *children)
+
+        if n.get('_arity', 0) == 1:
+            s, m = parse_expr(s)
+            n = unary(n, m, n.get('_swap', False))
+        elif n.get('_arity', 0) == 2:
+            s, m1 = parse_expr(s)
+            s, m2 = parse_expr(s)
+            n = binary(n, m1, m2, n.get('_swap', False))
+
+    return s, n
+
 def parse_exprs(s, nodes=None):
     if nodes is None:
         nodes = []
 
     while True:
-        s, n = parse_m(s)
+        s, n = parse_expr(s)
 
         if not n is None:
             nodes.append(n)
 
             if n.get('_closing', False):
                 return s, nodes
-
-            if n.get('_opening', False):
-                s, children = parse_exprs(s, [n])
-                nodes[-1] = El('mrow', *children)
-
-            if len(nodes) >= 2:
-                if nodes[-2].get('_arity', 0) == 1:
-                    nodes[-2:] = [unary(*nodes[-2:])]
-
-            if len(nodes) >= 3:
-                if nodes[-3].get('_arity', 0) == 2:
-                    nodes[-3:] = [binary(*nodes[-3:])]
 
             if len(nodes) >= 3:
                 for op, fn in (('/', frac), ('_', sub), ('^', sup)):
@@ -348,15 +366,15 @@ Symbol(input="rArr", el=El("mo", u"\u21D2"))
 Symbol(input="lArr", el=El("mo", u"\u21D0"))
 Symbol(input="hArr", el=El("mo", u"\u21D4"))
 
-Symbol(input="hat", el=El("mover", El("mo", u"\u005E"), _arity=1))
-Symbol(input="bar", el=El("mover", El("mo", u"\u00AF"), _arity=1))
-Symbol(input="vec", el=El("mover", El("mo", u"\u2192"), _arity=1))
-Symbol(input="dot", el=El("mover", El("mo", u"."), _arity=1))
-Symbol(input="ddot",el=El("mover", El("mo", u".."), _arity=1))
-Symbol(input="ul", el=El("munder", El("mo", u"\u0332"), _arity=1))
+Symbol(input="hat", el=El("mover", El("mo", u"\u005E"), _arity=1, _swap=1))
+Symbol(input="bar", el=El("mover", El("mo", u"\u00AF"), _arity=1, _swap=1))
+Symbol(input="vec", el=El("mover", El("mo", u"\u2192"), _arity=1, _swap=1))
+Symbol(input="dot", el=El("mover", El("mo", u"."), _arity=1, _swap=1))
+Symbol(input="ddot",el=El("mover", El("mo", u".."), _arity=1, _swap=1))
+Symbol(input="ul", el=El("munder", El("mo", u"\u0332"), _arity=1, _swap=1))
 
 Symbol(input="sqrt", el=El("msqrt", _arity=1))
-Symbol(input="root", el=El("mroot", _arity=2))
+Symbol(input="root", el=El("mroot", _arity=2, _swap=True))
 Symbol(input="frac", el=El("mfrac", _arity=2))
 Symbol(input="stackrel", el=El("mover", _arity=2))
 
