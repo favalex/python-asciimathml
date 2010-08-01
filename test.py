@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import unittest
 
 from xml.etree.ElementTree import tostring
@@ -119,6 +121,22 @@ class ParseTestCase(unittest.TestCase):
     def testNestedParens(self):
         self.assertRendersTo('(alpha + [ beta + { gamma } ] )',
             '<mrow><mo>(</mo><mi>&#945;</mi><mo>+</mo><mrow><mo>[</mo><mi>&#946;</mi><mo>+</mo><mrow><mo>{</mo><mi>&#947;</mi><mo>}</mo></mrow><mo>]</mo></mrow><mo>)</mo></mrow>')
+
+    def testNesting(self):
+        self.assertRendersTo('sqrt sqrt root3x',
+            '<msqrt><msqrt><mroot><mi>x</mi><mn>3</mn></mroot></msqrt></msqrt>')
+
+    def testBar(self):
+        self.assertRendersTo('(a,b]={x in RR | a < x <= b}',
+            '<mrow><mo>(</mo><mi>a</mi><mo>,</mo><mi>b</mi><mo>]</mo></mrow><mo>=</mo><mrow><mo>{</mo><mi>x</mi><mo>&#8712;</mo><mo>&#8477;</mo><mrow><mo>|</mo></mrow><mi>a</mi><mo>&lt;</mo><mi>x</mi><mo>&#8804;</mo><mi>b</mi><mo>}</mo></mrow>')
+
+    def testNegative(self):
+        self.assertRendersTo('abc-123.45^-1.1',
+            '<mi>a</mi><mi>b</mi><mi>c</mi><mo>-</mo><msup><mn>123.45</mn><mrow><mo>-</mo><mn>1.1</mn></mrow></msup>')
+
+    def testHat(self):
+        self.assertRendersTo('hat(ab) bar(xy) ulA vec v dotx ddot y',
+            '<mover><mrow><mi>a</mi><mi>b</mi></mrow><mo>^</mo></mover><mover><mrow><mi>x</mi><mi>y</mi></mrow><mo>&#175;</mo></mover><munder><mi>A</mi><mo>&#818;</mo></munder><mover><mi>v</mi><mo>&#8594;</mo></mover><mover><mi>x</mi><mo>.</mo></mover><mover><mi>y</mi><mo>..</mo></mover>')
 
 if __name__ == '__main__':
     unittest.main()
