@@ -29,15 +29,6 @@ def El(tag, text=None, *children, **attrib):
 
 number_re = re.compile('-?(\d+\.(\d+)?|\.?\d+)')
 
-def is_frac(e):
-    return e.text == '/'
-
-def is_sub(e):
-    return e.text == '_'
-
-def is_sup(e):
-    return e.text == '^'
-
 def strip_parens(n):
     if n.tag == 'mrow':
         if n[0].get('_opening', False):
