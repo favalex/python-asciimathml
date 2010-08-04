@@ -9,4 +9,10 @@ Also included is a
 [python-markdown](http://www.freewisdom.org/projects/python-markdown/)
 extension that translates text enclosed between '$$' into MathML.
 
-As far ad I know only firefox, among the major browsers, supports MathML.
+## Example usage
+
+## Dependencies and installation
+
+## Browsers support
+
+As far as I know only firefox, among the major browsers, supports MathML.
