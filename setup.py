@@ -1,7 +1,7 @@
 from distutils.core import setup
 setup(
     name = "asciimathml",
-    # packages = ["chardet"],
+    py_modules = ["asciimathml", "mdx_asciimathml"],
     version = "0.3.1",
     description = "ASCIIMathML to MathML translator",
     author = "Gabriele Favalessa",
