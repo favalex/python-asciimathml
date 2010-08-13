@@ -95,6 +95,7 @@ def parse(s, element=Element, atomicstring=lambda s: s):
     AtomicString_ = atomicstring
 
     s, nodes = parse_exprs(s)
+    remove_invisible(nodes)
     nodes = map(remove_private, nodes)
 
     return El('math', El('mstyle', *nodes))
@@ -181,6 +182,13 @@ def remove_private(n):
         remove_private(c)
 
     return n
+
+def remove_invisible(ns):
+    for i in range(len(ns)-1, 0, -1):
+        if ns[i].get('_invisible', False):
+            del ns[i]
+        else:
+            remove_invisible(ns[i].getchildren())
 
 def copy(n):
     m = El(n.tag, n.text, **dict(n.items()))
