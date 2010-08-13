@@ -74,8 +74,8 @@ class ParseTestCase(unittest.TestCase):
         self.assertTreeEquals(parse('dot alpha'),
             El('math', El('mstyle',
                 El('mover',
-                    El('mo', text='.'),
-                    El('mi', text=u'\u03b1')))))
+                    El('mi', text=u'\u03b1'),
+                    El('mo', text='.')))))
 
     def testUnary3(self):
         self.assertTreeEquals(parse('sqrt alpha'),
@@ -95,6 +95,10 @@ class ParseTestCase(unittest.TestCase):
                 El('mfrac',
                     El('mi', text=u'\u03b1'),
                     El('mi', text=u'\u03b2')))))
+
+    def testTripleFrac(self):
+        self.assertRendersTo('a/b/c/d',
+            '<mfrac><mi>a</mi><mi>b</mi></mfrac><mo>/</mo><mfrac><mi>c</mi><mi>d</mi></mfrac>')
 
     def testUnderOver(self):
         self.assertTreeEquals(parse('sum_alpha^beta'),
@@ -137,6 +141,14 @@ class ParseTestCase(unittest.TestCase):
     def testHat(self):
         self.assertRendersTo('hat(ab) bar(xy) ulA vec v dotx ddot y',
             '<mover><mrow><mi>a</mi><mi>b</mi></mrow><mo>^</mo></mover><mover><mrow><mi>x</mi><mi>y</mi></mrow><mo>&#175;</mo></mover><munder><mi>A</mi><mo>&#818;</mo></munder><mover><mi>v</mi><mo>&#8594;</mo></mover><mover><mi>x</mi><mo>.</mo></mover><mover><mi>y</mi><mo>..</mo></mover>')
+
+    def testMatrix(self):
+        self.assertRendersTo('[[a,b],[c,d]]((n),(k))',
+            '<mrow><mo>[</mo><mtable><mtr><mtd><mi>a</mi></mtd><mtd><mi>b</mi></mtd></mtr><mtr><mtd><mi>c</mi></mtd><mtd><mi>d</mi></mtd></mtr></mtable><mo>]</mo></mrow><mrow><mo>(</mo><mtable><mtr><mtd><mi>n</mi></mtd></mtr><mtr><mtd><mi>k</mi></mtd></mtr></mtable><mo>)</mo></mrow>')
+
+    def testMatrix2(self):
+        self.assertRendersTo('x/x={(1,if x!=0),(text{undefined},if x=0):}',
+            '<mfrac><mi>x</mi><mi>x</mi></mfrac><mo>=</mo><mrow><mo>{</mo><mtable columnalign="left"><mtr><mtd><mn>1</mn></mtd><mtd><mrow><mspace width="1ex"/><mo>if</mo><mspace width="1ex"/></mrow><mi>x</mi><mo>≠</mo><mn>0</mn></mtd></mtr><mtr><mtd><mrow><mtext>undefined</mtext></mrow></mtd><mtd><mrow><mspace width="1ex"/><mo>if</mo><mspace width="1ex"/></mrow><mi>x</mi><mo>=</mo><mn>0</mn></mtd></mtr></mtable></mrow>')
 
 if __name__ == '__main__':
     unittest.main()
