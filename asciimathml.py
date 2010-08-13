@@ -128,20 +128,32 @@ def parse_expr(s):
 
     return s, n
 
-def nodes_to_row(nodes):
+def find_node(ns, text):
+    for i, n in enumerate(ns):
+        if n.text == text:
+            return i
+
+    return -1
+
+def nodes_to_row(row):
     mrow = El('mtr')
 
-    for cell in nodes.getchildren():
-        if cell.text == ',':
-            continue
+    nodes = row.getchildren()
 
-        mrow.append(El('mtd', cell))
+    while True:
+        i = find_node(nodes, ',')
+
+        if i > 0:
+            mrow.append(El('mtd', *nodes[:i]))
+
+            nodes = nodes[i+1:]
+        else:
+            mrow.append(El('mtd', *nodes))
+            break
 
     return mrow
 
 def nodes_to_matrix(nodes):
-    # import pdb; pdb.set_trace()
-
     mtable = El('mtable')
 
     for row in nodes[1:-1]:
