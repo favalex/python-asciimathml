@@ -33,6 +33,12 @@ class ParseTestCase(unittest.TestCase):
                     El('mi', text=u'\u03b1'),
                     El('mi', text=u'\u03b2')))))
 
+    def testText(self):
+        self.assertTreeEquals(parse('text{undefined}'),
+            El('math', El('mstyle',
+                El('mrow', El('mtext', text='undefined')))))
+
+
     def testSub(self):
         self.assertTreeEquals(parse('alpha _ beta'),
             El('math', El('mstyle',
@@ -147,8 +153,8 @@ class ParseTestCase(unittest.TestCase):
             '<mrow><mo>[</mo><mtable><mtr><mtd><mi>a</mi></mtd><mtd><mi>b</mi></mtd></mtr><mtr><mtd><mi>c</mi></mtd><mtd><mi>d</mi></mtd></mtr></mtable><mo>]</mo></mrow><mrow><mo>(</mo><mtable><mtr><mtd><mi>n</mi></mtd></mtr><mtr><mtd><mi>k</mi></mtd></mtr></mtable><mo>)</mo></mrow>')
 
     def testMatrix2(self):
-        self.assertRendersTo('x/x={(1,if x!=0),(text{undefined},if x=0):}',
-            '<mfrac><mi>x</mi><mi>x</mi></mfrac><mo>=</mo><mrow><mo>{</mo><mtable columnalign="left"><mtr><mtd><mn>1</mn></mtd><mtd><mrow><mspace width="1ex"/><mo>if</mo><mspace width="1ex"/></mrow><mi>x</mi><mo>≠</mo><mn>0</mn></mtd></mtr><mtr><mtd><mrow><mtext>undefined</mtext></mrow></mtd><mtd><mrow><mspace width="1ex"/><mo>if</mo><mspace width="1ex"/></mrow><mi>x</mi><mo>=</mo><mn>0</mn></mtd></mtr></mtable></mrow>')
+        self.assertRendersTo('x/x={(1,if x!=0),(text{undefined},if x=0):}', # columnalign="left"
+            '<mfrac><mi>x</mi><mi>x</mi></mfrac><mo>=</mo><mrow><mo>{</mo><mtable><mtr><mtd><mn>1</mn></mtd><mtd><mrow><mspace width="1ex" /><mo>if</mo><mspace width="1ex" /></mrow><mi>x</mi><mo>&#8800;</mo><mn>0</mn></mtd></mtr><mtr><mtd><mrow><mtext>undefined</mtext></mrow></mtd><mtd><mrow><mspace width="1ex" /><mo>if</mo><mspace width="1ex" /></mrow><mi>x</mi><mo>=</mo><mn>0</mn></mtd></mtr></mtable></mrow>')
 
 if __name__ == '__main__':
     unittest.main()
