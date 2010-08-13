@@ -127,11 +127,11 @@ def parse_exprs(s, nodes=None):
             if n.get('_closing', False):
                 return s, nodes
 
-            if len(nodes) >= 3:
-                for op, fn in (('/', frac), ('_', sub), ('^', sup)):
-                    if nodes[-2].text == op:
-                        nodes[-3:] = [fn(nodes[-3], nodes[-1])]
-                        break # XXX
+            for op, fn in (('/', frac), ('_', sub), ('^', sup)):
+                if n.text == op:
+                    s, m = parse_expr(s)
+                    nodes[-2:] = [fn(nodes[-2], m)]
+                    break # XXX
 
         if s == '':
             return '', nodes
