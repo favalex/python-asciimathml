@@ -237,7 +237,15 @@ def parse_m(s, required=False):
 
     for y in symbol_names:
         if s.startswith(y):
-            return s[len(y):], copy(symbols[y])
+            n = copy(symbols[y])
+
+            if n.get('_space', False):
+                n = El('mrow',
+                        El('mspace', width='1ex'),
+                        n,
+                        El('mspace', width='1ex'))
+
+            return s[len(y):], n
 
     return s[1:], El('mi' if s[0].isalpha() else 'mo', s[0])
 
