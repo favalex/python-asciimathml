@@ -39,6 +39,9 @@ def strip_parens(n):
 
     return n
 
+def is_enclosed_in_parens(n):
+    return n.tag == 'mrow' and n[0].get('_opening', False) and n[-1].get('_closing', False)
+
 def binary(operator, operand_1, operand_2, swap=False):
     operand_1 = strip_parens(operand_1)
     operand_2 = strip_parens(operand_2)
@@ -101,7 +104,7 @@ def parse_expr(s):
 
     if not n is None:
         if n.get('_opening', False):
-            s, children = parse_exprs(s, [n])
+            s, children = parse_exprs(s, [n], inside_parens=True)
             n = El('mrow', *children)
 
         if n.get('_arity', 0) == 1:
@@ -114,9 +117,35 @@ def parse_expr(s):
 
     return s, n
 
-def parse_exprs(s, nodes=None):
+def nodes_to_row(nodes):
+    mrow = El('mtr')
+
+    for cell in nodes.getchildren():
+        if cell.text == ',':
+            continue
+
+        mrow.append(El('mtd', cell))
+
+    return mrow
+
+def nodes_to_matrix(nodes):
+    # import pdb; pdb.set_trace()
+
+    mtable = El('mtable')
+
+    for row in nodes[1:-1]:
+        if row.text == ',':
+            continue
+
+        mtable.append(nodes_to_row(strip_parens(row)))
+
+    return El('mrow', nodes[0], mtable, nodes[-1])
+
+def parse_exprs(s, nodes=None, inside_parens=False):
     if nodes is None:
         nodes = []
+
+    inside_matrix = False
 
     while True:
         s, n = parse_expr(s)
@@ -125,13 +154,19 @@ def parse_exprs(s, nodes=None):
             nodes.append(n)
 
             if n.get('_closing', False):
-                return s, nodes
+                if not inside_matrix:
+                    return s, nodes
+                else:
+                    return s, nodes_to_matrix(nodes)
 
             for op, fn in (('/', frac), ('_', sub), ('^', sup)):
                 if n.text == op:
                     s, m = parse_expr(s)
                     nodes[-2:] = [fn(nodes[-2], m)]
                     break # XXX
+
+            if inside_parens and n.text == ',' and is_enclosed_in_parens(nodes[-2]):
+                inside_matrix = True
 
         if s == '':
             return '', nodes
