@@ -100,6 +100,14 @@ def parse(s, element=Element, atomicstring=lambda s: s):
 
     return El('math', El('mstyle', *nodes))
 
+def parse_string(s):
+    opening = s[0]
+    closing = {'{': '}'}[opening]
+
+    end = s.find(closing)
+
+    return s[end+1:], El('mrow', El('mtext', s[1:end]))
+
 def parse_expr(s):
     s, n = parse_m(s)
 
@@ -108,7 +116,9 @@ def parse_expr(s):
             s, children = parse_exprs(s, [n], inside_parens=True)
             n = El('mrow', *children)
 
-        if n.get('_arity', 0) == 1:
+        if n.tag == 'mtext':
+            s, n = parse_string(s)
+        elif n.get('_arity', 0) == 1:
             s, m = parse_expr(s)
             n = unary(n, m, n.get('_swap', False))
         elif n.get('_arity', 0) == 2:
