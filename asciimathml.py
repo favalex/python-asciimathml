@@ -132,8 +132,8 @@ def parse_string(s):
 
     return s, El('mrow', El('mtext', text))
 
-def parse_expr(s):
-    s, n = parse_m(s)
+def parse_expr(s, required=False):
+    s, n = parse_m(s, required=required)
 
     if not n is None:
         if n.get('_opening', False):
@@ -143,11 +143,11 @@ def parse_expr(s):
         if n.tag == 'mtext':
             s, n = parse_string(s)
         elif n.get('_arity', 0) == 1:
-            s, m = parse_expr(s)
+            s, m = parse_expr(s, True)
             n = unary(n, m, n.get('_swap', False))
         elif n.get('_arity', 0) == 2:
-            s, m1 = parse_expr(s)
-            s, m2 = parse_expr(s)
+            s, m1 = parse_expr(s, True)
+            s, m2 = parse_expr(s, True)
             n = binary(n, m1, m2, n.get('_swap', False))
 
     return s, n
@@ -208,7 +208,7 @@ def parse_exprs(s, nodes=None, inside_parens=False):
 
             for op, fn in (('/', frac), ('_', sub), ('^', sup)):
                 if n.text == op:
-                    s, m = parse_expr(s)
+                    s, m = parse_expr(s, True)
                     nodes[-2:] = [fn(nodes[-2], m)]
                     break # XXX
 
