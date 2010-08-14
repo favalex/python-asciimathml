@@ -55,7 +55,7 @@ closing the tickets of this master [bug][bug]).
 But please note that MathML is displayed correctly only when embedded in a
 XHTML or in HTML5 document.
 
-XHTML must be served with content type 'application/xml+xhtml' (it's not enough
+XHTML must be served with content type 'application/xhtml+xml' (it's not enough
 for the document to be valid XHTML).  As you know this will prevent IE (up to
 IE8, I haven't tested with IE9) from displaying the page at all.
 

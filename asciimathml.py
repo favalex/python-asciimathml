@@ -8,7 +8,7 @@ Element_ = Element
 AtomicString_ = lambda s: s
 
 def El(tag, text=None, *children, **attrib):
-    # FIXME find a way to determine if an object is an Element that works in
+    # FIXME find a way to determine if an object is an Element working in
     # both cElementTree and ElementTree
     if repr(text).startswith('<Element '):
         children = (text, ) + children
