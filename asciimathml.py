@@ -100,13 +100,21 @@ def parse(s, element=Element, atomicstring=lambda s: s):
 
     return El('math', El('mstyle', *nodes))
 
+delimiters = {'{': '}', '(': ')', '[': ']'}
+
 def parse_string(s):
     opening = s[0]
-    closing = {'{': '}'}[opening]
 
-    end = s.find(closing)
+    if opening in delimiters:
+        closing = delimiters[opening]
+        end = s.find(closing)
 
-    return s[end+1:], El('mrow', El('mtext', s[1:end]))
+        text = s[1:end]
+        s = s[end+1:]
+    else:
+        s, text = parse_m(s)
+
+    return s, El('mrow', El('mtext', text))
 
 def parse_expr(s):
     s, n = parse_m(s)
