@@ -1,11 +1,8 @@
 import re
-from collections import namedtuple
-
-import pdb
 
 from xml.etree.ElementTree import Element, tostring
 
-__all__ = ['parse', 'El', 'remove_private']
+__all__ = ['parse']
 
 Element_ = Element
 AtomicString_ = lambda s: s
@@ -89,6 +86,25 @@ def sup(base, superscript):
     return n
 
 def parse(s, element=Element, atomicstring=lambda s: s):
+    """
+Translates from ASCIIMathML (an easy to type and highly readable way to
+represent math formulas) into MathML (a w3c standard directly displayable by
+some web browsers).
+
+The function `parse()` generates a tree of elements:
+
+    >>> import asciimathml
+    >>> asciimathml.parse('sqrt 2')
+    <Element math at b76fb28c>
+
+The tree can then be manipulated using the standard python library.  For
+example we can generate its string representation:
+
+    >>> from xml.etree.ElementTree import tostring
+    >>> tostring(asciimathml.parse('sqrt 2'))
+    '<math><mstyle><msqrt><mn>2</mn></msqrt></mstyle></math>'
+    """
+
     global Element_, AtomicString_
 
     Element_ = element

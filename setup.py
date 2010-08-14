@@ -8,7 +8,7 @@ setup(
     author_email = "favalex@gmail.com",
     url = "http://github.com/favalex/python-asciimathml",
     # download_url = "http:///python-asciimathml-0.3.1.tgz",
-    keywords = ["markup", "math", "xml"],
+    keywords = ["markup", "math", "mathml", "xml", "markdown"],
     classifiers = [
         "Programming Language :: Python",
         "Development Status :: 3 - Alpha",
@@ -20,8 +20,17 @@ setup(
         "Topic :: Text Processing :: Markup :: XML"
         ],
     long_description = """\
-Translate from ASCIIMathML (an easy to type and highly readable way to
+Translates from ASCIIMathML (an easy to type and highly readable way to
 represent math formulas) into MathML (a w3c standard directly displayable by
 some web browsers).
+
+The MathML tree is represented by Elements from the standard
+xml.etree.ElementTree python library.
+
+The obtained tree can then be further manipulated and then serialized into a
+string to be included for example in a HTML document.
+
+Also included is a markdown extension that allows the use of ASCIIMathML,
+eclosed between $$, inside markdown documents.
 """
 )

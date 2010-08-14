@@ -4,11 +4,11 @@ import unittest
 
 from xml.etree.ElementTree import tostring
 
-from asciimathml import *
+from asciimathml import parse, El
 
 class ParseTestCase(unittest.TestCase):
     def assertTreeEquals(self, a, b):
-        self.assertEquals(tostring(a), tostring(remove_private(b)))
+        self.assertEquals(tostring(a), tostring(b))
 
     def assertRendersTo(self, asciimathml, xmlstring):
         mathml = parse(asciimathml)
