@@ -8,16 +8,13 @@ Element_ = Element
 AtomicString_ = lambda s: s
 
 def El(tag, text=None, *children, **attrib):
-    # FIXME find a way to determine if an object is an Element working in
-    # both cElementTree and ElementTree
-    if repr(text).startswith('<Element '):
-        children = (text, ) + children
-        text = None
-
     element = Element_(tag, **attrib)
 
-    if text:
-        element.text = AtomicString_(text)
+    if not text is None:
+        if isinstance(text, basestring):
+            element.text = AtomicString_(text)
+        else:
+            children = (text, ) + children
 
     for child in children:
         element.append(child)
