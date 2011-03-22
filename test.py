@@ -38,6 +38,19 @@ class ParseTestCase(unittest.TestCase):
             El('math', El('mstyle',
                 El('mrow', El('mtext', text='undefined')))))
 
+    def testIncompleteFrac(self):
+        self.assertTreeEquals(parse('alpha /'),
+            El('math', El('mstyle',
+                El('mfrac',
+                    El('mi', text=u'\u03b1'),
+                    El('mo')))))
+
+    def testDivision(self):
+        self.assertTreeEquals(parse('alpha // beta'),
+            El('math', El('mstyle',
+                El('mi', text=u'\u03b1'),
+                El('mo', text='/'),
+                El('mi', text=u'\u03b2'))))
 
     def testSub(self):
         self.assertTreeEquals(parse('alpha _ beta'),

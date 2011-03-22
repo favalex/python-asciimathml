@@ -203,14 +203,12 @@ def parse_exprs(s, nodes=None, inside_parens=False):
                 else:
                     return s, nodes_to_matrix(nodes)
 
-            for op, fn in (('/', frac), ('_', sub), ('^', sup)):
-                if n.text == op:
-                    s, m = parse_expr(s, True)
-                    nodes[-2:] = [fn(nodes[-2], m)]
-                    break # XXX
-
             if inside_parens and n.text == ',' and is_enclosed_in_parens(nodes[-2]):
                 inside_matrix = True
+
+            if len(nodes) >= 3 and nodes[-2].get('_special_binary'):
+                transform =  nodes[-2].get('_special_binary')
+                nodes[-3:] = [transform(nodes[-3], nodes[-1])]
 
         if s == '':
             return '', nodes
@@ -315,6 +313,9 @@ Symbol(input="zeta",   el=El("mi", u"\u03B6"))
 Symbol(input="*",  el=El("mo", u"\u22C5"))
 Symbol(input="**", el=El("mo", u"\u22C6"))
 
+Symbol(input="/", el=El("mo", u"/", _special_binary=frac))
+Symbol(input="^", el=El("mo", u"^", _special_binary=sup))
+Symbol(input="_", el=El("mo", u"_", _special_binary=sub))
 Symbol(input="//", el=El("mo", u"/"))
 Symbol(input="\\\\", el=El("mo", u"\\"))
 Symbol(input="setminus", el=El("mo", u"\\"))
