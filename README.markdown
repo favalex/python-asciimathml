@@ -24,6 +24,14 @@ example we can generate its string representation:
     >>> tostring(asciimathml.parse('sqrt 2'))
     '<math><mstyle><msqrt><mn>2</mn></msqrt></mstyle></math>'
 
+Or, if you want to add the attributes title and xmlns to the root node:
+
+    >>> tree = asciimathml.parse('sqrt 2')
+    >>> tree.set('title', 'sqrt2')
+    >>> tree.set('xmlns', 'http://www.w3.org/1998/Math/MathML')
+    >>> tostring(tree)
+    '<math title="sqrt2" xmlns="http://www.w3.org/1998/Math/MathML"><mstyle><msqrt><mn>2</mn></msqrt></mstyle></math>'
+
 As you can see MathML is very verbose and is not intended to be written by hand.
 
 And this is an example of ASCIIMathML embedded in markdown:
