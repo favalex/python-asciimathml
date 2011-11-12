@@ -144,6 +144,60 @@ def parse_string(s):
 
     return s, El('mrow', El('mtext', text))
 
+tracing_level = 0
+def trace_parser(p):
+    """
+    Decorator for tracing the parser.
+
+    Use it to decorate functions with signature:
+
+      string -> (string, nodes)
+
+    and a trace of the progress made by the parser will be printed to stderr.
+
+    Currently parse_exprs(), parse_expr() and parse_m() have the right signature.
+    """
+
+    def nodes_to_string(n):
+        if isinstance(n, list):
+            result = '[ '
+            for m in map(nodes_to_string, n):
+                result += m
+                result += ' '
+            result += ']'
+
+            return result
+        else:
+            try:
+                return tostring(remove_private(copy(n)))
+            except Exception as e:
+                return n
+
+    def print_trace(*args):
+        import sys
+
+        sys.stderr.write("    " * tracing_level)
+        for arg in args:
+            sys.stderr.write(arg)
+            sys.stderr.write(' ')
+        sys.stderr.write('\n')
+        sys.stderr.flush()
+
+    def wrapped(s, *args, **kwargs):
+        global tracing_level
+
+        print_trace(p.__name__, repr(s))
+
+        tracing_level += 1
+        s, n = p(s, *args, **kwargs)
+        tracing_level -= 1
+
+        print_trace("-> ", repr(s), nodes_to_string(n))
+
+        return s, n
+
+    return wrapped
+
 def parse_expr(s, required=False):
     s, n = parse_m(s, required=required)
 
