@@ -178,7 +178,7 @@ def trace_parser(p):
 
         sys.stderr.write("    " * tracing_level)
         for arg in args:
-            sys.stderr.write(arg)
+            sys.stderr.write(str(arg))
             sys.stderr.write(' ')
         sys.stderr.write('\n')
         sys.stderr.flush()
