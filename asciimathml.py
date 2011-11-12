@@ -461,7 +461,7 @@ Symbol(input="]",  el=El("mo", "]", _closing=True))
 Symbol(input="{",  el=El("mo", "{", _opening=True))
 Symbol(input="}",  el=El("mo", "}", _closing=True))
 Symbol(input="|", el=El("mo", u"|", _opening=True, _closing=True))
-Symbol(input="||", el=El("mo", u"||", _opening=True, _closing=True))
+Symbol(input="||", el=El("mo", u"\u2016", _opening=True, _closing=True)) # double vertical line
 Symbol(input="(:", el=El("mo", u"\u2329", _opening=True))
 Symbol(input=":)", el=El("mo", u"\u232A", _closing=True))
 Symbol(input="<<", el=El("mo", u"\u2329", _opening=True))
