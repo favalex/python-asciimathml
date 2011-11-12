@@ -21,13 +21,28 @@ from xml.etree.ElementTree import tostring
 
 from asciimathml import parse, El
 
+import xml.dom.minidom as md
+
+def pretty_print(s):
+    return md.parseString(s).toprettyxml(indent='  ')
+
 class ParseTestCase(unittest.TestCase):
+    maxDiff = None
+
     def assertTreeEquals(self, a, b):
-        self.assertEquals(tostring(a), tostring(b))
+        ppa = pretty_print(tostring(a))
+        ppb = pretty_print(tostring(b))
+        # open('got.xml', 'w').write(ppa.encode('utf-8'))
+        # open('expected.xml', 'w').write(ppb.encode('utf-8'))
+        self.assertEquals(ppa, ppb)
 
     def assertRendersTo(self, asciimathml, xmlstring):
         mathml = parse(asciimathml)
-        self.assertEquals(tostring(mathml), '<math><mstyle>%s</mstyle></math>' % xmlstring)
+        ppa = pretty_print(tostring(mathml))
+        ppb = pretty_print('<math><mstyle>%s</mstyle></math>' % xmlstring)
+        # open('got.xml', 'w').write(ppa.encode('utf-8'))
+        # open('expected.xml', 'w').write(ppb.encode('utf-8'))
+        self.assertEquals(ppa, ppb)
 
     def testEmpty(self):
         self.assertTreeEquals(parse(''), El('math', El('mstyle')))
