@@ -198,22 +198,28 @@ def trace_parser(p):
 
     return wrapped
 
-def parse_expr(s, required=False):
+def parse_expr(s, siblings, required=False):
     s, n = parse_m(s, required=required)
 
     if not n is None:
-        if n.get('_opening', False):
+        # Being both an _opening and a _closing element is a trait of
+        # symmetrical delimiters (e.g. ||).
+        # In that case, act as an opening delimiter only if there is not
+        # already one of the same kind among the preceding siblings.
+        if n.get('_opening', False) \
+           and (not n.get('_closing', False) \
+                or find_node_backwards(siblings, n.text) == -1):
             s, children = parse_exprs(s, [n], inside_parens=True)
             n = El('mrow', *children)
 
         if n.tag == 'mtext':
             s, n = parse_string(s)
         elif n.get('_arity', 0) == 1:
-            s, m = parse_expr(s, True)
+            s, m = parse_expr(s, [], True)
             n = unary(n, m, n.get('_swap', False))
         elif n.get('_arity', 0) == 2:
-            s, m1 = parse_expr(s, True)
-            s, m2 = parse_expr(s, True)
+            s, m1 = parse_expr(s, [], True)
+            s, m2 = parse_expr(s, [], True)
             n = binary(n, m1, m2, n.get('_swap', False))
 
     return s, n
@@ -222,6 +228,13 @@ def find_node(ns, text):
     for i, n in enumerate(ns):
         if n.text == text:
             return i
+
+    return -1
+
+def find_node_backwards(ns, text):
+    for i, n in enumerate(reversed(ns)):
+        if n.text == text:
+            return len(ns) - i
 
     return -1
 
@@ -261,7 +274,7 @@ def parse_exprs(s, nodes=None, inside_parens=False):
     inside_matrix = False
 
     while True:
-        s, n = parse_expr(s)
+        s, n = parse_expr(s, nodes)
 
         if not n is None:
             nodes.append(n)
@@ -448,6 +461,7 @@ Symbol(input="]",  el=El("mo", "]", _closing=True))
 Symbol(input="{",  el=El("mo", "{", _opening=True))
 Symbol(input="}",  el=El("mo", "}", _closing=True))
 Symbol(input="|", el=El("mo", u"|", _opening=True, _closing=True))
+Symbol(input="||", el=El("mo", u"||", _opening=True, _closing=True))
 Symbol(input="(:", el=El("mo", u"\u2329", _opening=True))
 Symbol(input=":)", el=El("mo", u"\u232A", _closing=True))
 Symbol(input="<<", el=El("mo", u"\u2329", _opening=True))
