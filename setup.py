@@ -35,8 +35,8 @@ setup(
         ],
     long_description = """\
 Translates from ASCIIMathML (an easy to type and highly readable way to
-represent math formulas) into MathML (a w3c standard directly displayable by
-some web browsers).
+represent math formulas) into Presentation MathML (a w3c standard directly
+displayable by some web browsers).
 
 The MathML tree is represented by Elements from the standard
 xml.etree.ElementTree python library.

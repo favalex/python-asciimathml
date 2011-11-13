@@ -42,7 +42,7 @@ And this is an example of ASCIIMathML embedded in markdown:
 
 ## Dependencies and installation
 
-Tested with python 2.6.  The core module, `asciimathml` has no dependencies.
+Tested with python 2.7.  The core module, `asciimathml` has no dependencies.
 The markdown extension `mdx_asciimathml` requires at least markdown 2.0.
 
 A standard `setup.py` is provided (as usual it's enough to execute `python
