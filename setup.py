@@ -17,7 +17,7 @@ from distutils.core import setup
 setup(
     name = "asciimathml",
     py_modules = ["asciimathml", "mdx_asciimathml"],
-    version = "0.9.3",
+    version = "0.9.4",
     description = "ASCIIMathML to MathML translator",
     author = "Gabriele Favalessa",
     author_email = "favalex@gmail.com",
