@@ -206,9 +206,11 @@ class ParseTestCase(unittest.TestCase):
         self.assertRendersTo('x/x={(1,if x!=0),(text{undefined},if x=0):}', # columnalign="left"
             '<mfrac><mi>x</mi><mi>x</mi></mfrac><mo>=</mo><mrow><mo>{</mo><mtable><mtr><mtd><mn>1</mn></mtd><mtd><mrow><mspace width="1ex" /><mo>if</mo><mspace width="1ex" /></mrow><mi>x</mi><mo>&#8800;</mo><mn>0</mn></mtd></mtr><mtr><mtd><mrow><mtext>undefined</mtext></mrow></mtd><mtd><mrow><mspace width="1ex" /><mo>if</mo><mspace width="1ex" /></mrow><mi>x</mi><mo>=</mo><mn>0</mn></mtd></mtr></mtable></mrow>')
 
+    # asciimathml.js wraps twice the `x` with a single bar (<mrow><mo>|</mo><mrow><mo>|</mo> ...)
+    # we use a double bar instead
     def testDoubleBar(self):
         self.assertRendersTo('||x||^2',
-            '<msup><mrow><mo>|</mo><mrow><mo>|</mo><mi>x</mi><mo>|</mo></mrow><mo>|</mo></mrow><mn>2</mn></msup>')
+            '<msup><mrow><mo>&#x2016;</mo><mi>x</mi><mo>&#x2016;</mo></mrow><mn>2</mn></msup>')
 
 if __name__ == '__main__':
     unittest.main()
