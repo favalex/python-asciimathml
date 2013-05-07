@@ -26,7 +26,7 @@ def El(tag, text=None, *children, **attrib):
     element = Element_(tag, **attrib)
 
     if not text is None:
-        if isinstance(text, basestring):
+        if isinstance(text, str):
             element.text = AtomicString_(text)
         else:
             children = (text, ) + children
@@ -571,7 +571,7 @@ if __name__ == '__main__':
     else:
         element = Element
 
-    print """\
+    print("""\
 <?xml version="1.0"?>
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -579,9 +579,9 @@ if __name__ == '__main__':
         <title>ASCIIMathML preview</title>
     </head>
     <body>
-"""
-    print tostring(parse(' '.join(args), element))
-    print """\
+""")
+    print(tostring(parse(' '.join(args), element)))
+    print("""\
     </body>
 </html>
-"""
+""")
