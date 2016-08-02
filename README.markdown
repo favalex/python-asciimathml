@@ -1,3 +1,7 @@
+# python-asciimathml
+
+**NOTE:** You should be checking out [the more maintained copy](https://github.com/ShadowKyogre/python-asciimathml).
+
 This small python module exports a single function, `parse()`, which parses a
 string containing [ASCIIMathML][ASCIIMathML] and returns the corresponding
 MathML tree as an [xml.etree.ElementTree][etree] instance.
