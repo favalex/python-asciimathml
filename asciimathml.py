@@ -13,7 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import re
+import sys
 
 from xml.etree.ElementTree import Element, tostring
 
@@ -22,11 +25,17 @@ __all__ = ['parse']
 Element_ = Element
 AtomicString_ = lambda s: s
 
+def text_check(text):
+    py2str = (sys.version_info.major == 2 and isinstance(text, basestring))
+    py3str = (sys.version_info.major == 3 and isinstance(text, str))
+
+    return (py3str or py2str)
+
 def El(tag, text=None, *children, **attrib):
     element = Element_(tag, **attrib)
 
     if not text is None:
-        if isinstance(text, str):
+        if text_check(text):
             element.text = AtomicString_(text)
         else:
             children = (text, ) + children
@@ -603,7 +612,12 @@ if __name__ == '__main__':
     </head>
     <body>
 """)
-    print(tostring(parse(' '.join(args_ns.text), element), encoding='unicode'))
+    result = parse(' '.join(args_ns.text), element)
+    if sys.version_info.major == 3:
+        encoding = 'unicode'
+    else:
+        encoding = 'utf-8'
+    print(tostring(result, encoding=encoding))
     print("""\
     </body>
 </html>
