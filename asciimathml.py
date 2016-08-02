@@ -558,15 +558,38 @@ Symbol(input="text", el=El("mtext", _arity=1))
 symbol_names = sorted(symbols.keys(), key=lambda s: len(s), reverse=True)
 
 if __name__ == '__main__':
-    import sys
-    args = sys.argv[1:]
-    if args[0] == '-m':
+    from argparse import ArgumentParser
+
+    aparser = ArgumentParser(
+        usage='Test asciimathml with different etree elements'
+    )
+    text_modes = aparser.add_mutually_exclusive_group()
+    text_modes.add_argument(
+        '-m', '--markdown',
+        default=False, action='store_true',
+        help="Use markdown's etree element"
+    )
+    text_modes.add_argument(
+        '-c', '--celement',
+        default=False, action='store_true',
+        help="Use cElementTree's element"
+    )
+
+    aparser.add_argument(
+        'text',
+        nargs='+',
+        help='asciimath text to turn into mathml'
+    )
+    args_ns = aparser.parse_args()
+
+    if args_ns.markdown:
         import markdown
-        args.pop(0)
-        element = markdown.etree.Element
-    elif args[0] == '-c':
+        try:
+            element = markdown.etree.Element
+        except AttributeError as e:
+            element = markdown.util.etree.Element
+    elif args_ns.celement:
         from xml.etree.cElementTree import Element
-        args.pop(0)
         element = Element
     else:
         element = Element
@@ -580,7 +603,7 @@ if __name__ == '__main__':
     </head>
     <body>
 """)
-    print(tostring(parse(' '.join(args), element)))
+    print(tostring(parse(' '.join(args_ns.text), element), encoding='unicode'))
     print("""\
     </body>
 </html>
