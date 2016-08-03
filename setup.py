@@ -21,6 +21,8 @@ setup(
     description = "ASCIIMathML to MathML translator",
     author = "Gabriele Favalessa",
     author_email = "favalex@gmail.com",
+    maintainer = 'ShadowKyogre',
+    maintainer_email = "shadowkyogre.public@gmail.com",
     url = "http://github.com/favalex/python-asciimathml",
     keywords = ["markup", "math", "mathml", "xml", "markdown"],
     classifiers = [
